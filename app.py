@@ -18,7 +18,7 @@ def generate_response():
         response_ids = model.generate(input_ids, max_length=100, num_beams=5, no_repeat_ngram_size=2, top_k=50, top_p=0.95)
         generated_response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
 
-        return jsonify({'generated_response': generated_response})
+        return jsonify({'generated_rerereresponse': generated_response})
 
     except Exception as e:
         return jsonify({'error': str(e)})
