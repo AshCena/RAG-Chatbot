@@ -7,41 +7,37 @@ function App() {
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [allBooksSelected, setAllBooksSelected] = useState(false);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = async (e) => {
+    let responseText;
     e.preventDefault();
     if (newMessage.trim() === '') return;
 
     const userMessage = { content: newMessage, sender: 'user' };
     try {
       // Make a POST API call to send the user message to the server
-      const response = fetch('http://127.0.0.1:5000/generate', {
+      const response = await fetch('http://127.0.0.1:5000/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           // Add any other headers if needed
         },
         body: JSON.stringify({
-          "user_input": newMessage
+          user_input: newMessage
         }), // Adjust payload structure as needed
-      });
-
-      if (!response.ok) {
-        // Handle error if the server returns an error response
-        console.error('Error sending message:', response.statusText);
-      } else {
-        // Handle success if needed
-        const responseData = response.json();
-        console.log('Message sent successfully:', responseData);
-      }
+      }).then(response => response.json())
+        .then(data => {
+          console.log('response', data['generated_rerereresponse']);
+          responseText = data['generated_rerereresponse'];
+          const botMessage = { content: responseText, sender: 'bot' };
+          const updatedMessages = [...messages, userMessage, botMessage];
+          setMessages(updatedMessages);
+          setNewMessage('');
+        });;
     } catch (error) {
       // Handle network or other errors
       console.error('Error:', error.message);
     }
-    const botMessage = { content: newMessage, sender: 'bot' };
 
-    const updatedMessages = [...messages, userMessage, botMessage];
-    setMessages(updatedMessages);
-    setNewMessage('');
   };
 
   const handleBookCheckboxChange = (book) => {
