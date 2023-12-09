@@ -12,6 +12,31 @@ function App() {
     if (newMessage.trim() === '') return;
 
     const userMessage = { content: newMessage, sender: 'user' };
+    try {
+      // Make a POST API call to send the user message to the server
+      const response = fetch('http://127.0.0.1:5000/generate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add any other headers if needed
+        },
+        body: JSON.stringify({
+          "user_input": newMessage
+        }), // Adjust payload structure as needed
+      });
+
+      if (!response.ok) {
+        // Handle error if the server returns an error response
+        console.error('Error sending message:', response.statusText);
+      } else {
+        // Handle success if needed
+        const responseData = response.json();
+        console.log('Message sent successfully:', responseData);
+      }
+    } catch (error) {
+      // Handle network or other errors
+      console.error('Error:', error.message);
+    }
     const botMessage = { content: newMessage, sender: 'bot' };
 
     const updatedMessages = [...messages, userMessage, botMessage];
