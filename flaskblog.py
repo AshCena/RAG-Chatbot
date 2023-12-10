@@ -35,7 +35,9 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
 novel_query_counter = defaultdict(int)
 user_queries = []
 
-
+global chitchat_counter, novel_counter
+chitchat_counter = 0
+novel_counter = 0
 chromadb_mapping = {
     'novel-1.txt': './chroma/chroma_db_sherlock',
     'novel-2.txt': './chroma/chroma_db_alice',
@@ -90,7 +92,7 @@ def generate_bar_graph(queries):
     stop_words = set(stopwords.words('english'))
     words_without_stop = [word for word in words if word not in stop_words]
     word_freq = nltk.FreqDist(words_without_stop)
-    common_words = dict(word_freq.most_common(5))
+    common_words = dict(word_freq.most_common(10))
     plt.figure(figsize=(10, 6))
     plt.bar(common_words.keys(), common_words.values(), color='blue')
     plt.xlabel('Words')
@@ -101,11 +103,8 @@ def generate_bar_graph(queries):
     plt.savefig('./chatbot/public/bar_graph.png')
 
 def generate_doughnut_chart():
+    global chitchat_counter, novel_counter
     # Plotting a Doughnut Chart for Chit-Chat to Novel-Related Query Ratio
-    global chitchat_counter, novel_counter  # Add this line
-    #chitchat_counter = 0
-    #novel_counter = 0
-
     with open('chitchat_count.pkl', 'rb') as file:
         chitchat_counter = pickle.load(file)
 
@@ -114,7 +113,7 @@ def generate_doughnut_chart():
 
     plt.figure(figsize=(8, 8))
     plt.pie([chitchat_counter, novel_counter], labels=['Chit-Chat', 'Novel-Related'], autopct='%1.1f%%', startangle=90,
-            colors=['rgb(255, 99, 132)', 'rgb(54, 162, 235)'])
+        colors=['#FF6347', '#3498db'])  # Hex color codes for 'rgb(255, 99, 132)' and 'rgb(54, 162, 235)'
     plt.title('Chit-Chat to Novel-Related Query Ratio')
     plt.savefig('./chatbot/public/doughnut_chart.png')
 
@@ -183,8 +182,9 @@ def preprocess_text(text):
 @app.route('/chitchatclassifier', methods=['POST'])
 def chitchat_classifier():
     try:
+        global chitchat_counter, novel_counter
         data = request.json
-        print('data : ', data)
+        print('chitchatclassifier data : ', data)
         user_input = data['user_input']
         user_queries.append(user_input)
 
@@ -198,17 +198,18 @@ def chitchat_classifier():
         new_texts = [user_input, user_input]
         new_texts_tfidf = tfidf_vectorizer.transform(new_texts)
         predictions = loaded_model.predict(new_texts_tfidf)
-        print(predictions)
-
+        print('predictions : ', predictions)
         if predictions[0] == 1:
-
+            print(' in if ')
             chitchat_counter += 1
             with open('chitchat_count.pkl', 'wb') as file:
                 pickle.dump(chitchat_counter, file)
         else:
+            print(' in else ')
             novel_counter += 1
             with open('novel_count.pkl', 'wb') as file:
                 pickle.dump(novel_counter, file)
+        print(' if ended ')
         return jsonify({'isChitchat': str(predictions[0])})
 
     except Exception as e:
