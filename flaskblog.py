@@ -10,6 +10,12 @@ import nltk
 from nltk.corpus import stopwords
 import re
 import joblib
+from langchain.vectorstores import Chroma
+from langchain.embeddings import HuggingFaceEmbeddings
+from langchain.llms import OpenAI
+from langchain.prompts import PromptTemplate
+from langchain.chains import RetrievalQA
+
 # nltk.download('stopwords')
 # nltk.download('punkt')
 app = Flask(__name__)
@@ -17,6 +23,26 @@ CORS(app)
 
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
+
+chromadb_mapping = {
+    'novel-1.txt': './chroma/chroma_db_sherlock',
+    'novel-2.txt': './chroma/chroma_db_alice',
+    'novel-3.txt': './chroma/chroma_db_good',
+    'novel-4.txt': './chroma/chroma_db_primitive',
+    'novel-5.txt': './chroma/chroma_db_pigs_is_pigs',
+    'novel-6.txt': './chroma/chroma_db_usher',
+    'novel-7.txt': './chroma/chroma_db_magi',
+    'novel-8.txt': './chroma/chroma_db_the_jungle_book',
+    'novel-9.txt': './chroma/chroma_db_redroom',
+    'novel-10.txt': './chroma/chroma_db_warrior'
+}
+try:
+    with open("./open-ai-key.txt", "r") as file:
+        open_ai_key = file.readline().strip()
+        print('open_ai_key : ', open_ai_key)
+except FileNotFoundError:
+    open_ai_key = ""
+llm = OpenAI(openai_api_key=open_ai_key)
 
 @app.route('/generate', methods=['POST'])
 def generate_response():
@@ -65,6 +91,61 @@ def chitchat_classifier():
         print(predictions)
         return jsonify({'isChitchat': str(predictions[0])})
 
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
+@app.route('/novel', methods=['POST'])
+def novel():
+    try:
+        data = request.json
+        # print('data : ', data)
+        query = data['user_input']
+
+        book_name = ''
+        embeddings_model = HuggingFaceEmbeddings()
+        persistent_directory = './chroma/chroma_db'
+        try:
+            loaded_vectordb = Chroma(persist_directory=persistent_directory, embedding_function=embeddings_model)
+        except FileNotFoundError:
+            print("Chroma vector store not found. You may need to run the vectorization process first.")
+            vectordb = None
+        # query = "what is the story of Alice"
+        docs = loaded_vectordb.similarity_search(query, k=5)
+        for rank, doc in enumerate(docs):
+            print(f"Rank {rank+1}:")
+            # print(doc.page_content)
+            print(doc.metadata)
+            print("\n")
+            book_name = doc.metadata['source']
+            break
+        book_name = book_name[2:]
+        print('book name : ', book_name)
+
+        persistent_directory = chromadb_mapping[book_name]
+        try:
+            final_vectordb = Chroma(persist_directory=persistent_directory, embedding_function=embeddings_model)
+        except FileNotFoundError:
+            print("Chroma vector store not found. You may need to run the vectorization process first.")
+            vectordb = None
+        docs = final_vectordb.similarity_search(query, k=5)
+        for rank, doc in enumerate(docs):
+            print(f"Rank {rank+1}:")
+            print(doc.page_content)
+            print(doc.metadata)
+            print("\n")
+            break
+
+        #RAG--------------------------------
+        new_line = '\n'
+        template = f"Use the following pieces of context to answer truthfully.{new_line}If the context does not provide the truthful answer, make the answer as truthful as possible.{new_line}Use 15 words maximum. Keep the response as concise as possible.{new_line}{{context}}{new_line}Question: {{question}}{new_line}Response: "
+        QA_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"],template=template,)
+        qa_chain = RetrievalQA.from_chain_type(llm,
+            retriever=final_vectordb.as_retriever(),
+            return_source_documents=True,
+            chain_type_kwargs={"prompt": QA_CHAIN_PROMPT})
+        result = qa_chain({"query": query})
+        print('result  : ', result)
+        return jsonify({'novel': result["result"].strip()})
     except Exception as e:
         return jsonify({'error': str(e)})
 
