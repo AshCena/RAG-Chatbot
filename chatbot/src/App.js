@@ -21,6 +21,18 @@ function App() {
     'The Red Room',
     'Warrior of Two Worlds',
   ];
+  const nameToNovel = {
+    'sherlock' : 'The Adventures of Sherlock Holmes',
+    'alice' : 'Alice\'s Adventures in Wonderland',
+    'good' : 'And It Was Good',
+    'primitive' : 'Into the Primitive',
+    'pigs_is_pigs' : 'Pigs is Pigs',
+    'usher' : 'The Fall of the House of Usher',
+    'magi' : 'The Gift of the Magi',
+    'jungle' : 'The Jungle Book',
+    'redroom' : 'The Red Room',
+    'warrior' : 'Warrior of Two Worlds'
+  }
   const addMessage = async () => {
     const userMessage = { content: newMessage, sender: 'user' };
     const updatedMessages = [...messages, userMessage];
@@ -44,8 +56,11 @@ function App() {
         }),
       }).then(response => response.json())
         .then(data => {
-          console.log('response', data['novel']);
+          console.log('data[\'novel\'] : ', data['novel']);
+          console.log('data[\'name\'] : ', data['name']);
           responseText = data['novel'];
+          console.log('Novel name : ', nameToNovel[data['name']])
+          handleBookCheckboxChange(nameToNovel[data['name']])
           const userMessage = { content: newMessage, sender: 'user' };
           const botMessage = { content: responseText, sender: 'bot' };
           const updatedMessages = [...messages, userMessage, botMessage];
@@ -135,6 +150,7 @@ function App() {
   };
 
   const handleBookCheckboxChange = (book) => {
+    console.log(' in  handleBookCheckboxChange :' , book)
     const updatedSelectedBooks = selectedBooks.includes(book)
       ? selectedBooks.filter((selectedBook) => selectedBook !== book)
       : [...selectedBooks, book];

@@ -38,7 +38,7 @@ chromadb_mapping = {
     'novel-5.txt': './chroma/chroma_db_pigs_is_pigs',
     'novel-6.txt': './chroma/chroma_db_usher',
     'novel-7.txt': './chroma/chroma_db_magi',
-    'novel-8.txt': './chroma/chroma_db_the_jungle_book',
+    'novel-8.txt': './chroma/chroma_db_jungle',
     'novel-9.txt': './chroma/chroma_db_redroom',
     'novel-10.txt': './chroma/chroma_db_warrior'
 }
@@ -52,7 +52,6 @@ llm = OpenAI(openai_api_key=open_ai_key)
 
 
 def generate_pie_chart():
-    # Map novel filenames to their corresponding names
     novel_names_mapping = {
         'novel-1.txt': 'The Adventures of Sherlock Holmes',
         'novel-2.txt': 'Alice\'s Adventures in Wonderland',
@@ -66,11 +65,9 @@ def generate_pie_chart():
         'novel-10.txt': 'Warrior of Two Worlds'
     }
 
-    # Get the data for the Pie Chart from the query counter
     novels = [novel_names_mapping[key] for key in novel_query_counter.keys()]
     query_distribution = list(novel_query_counter.values())
 
-    # Plotting a Pie Chart
     plt.figure(figsize=(8, 8))
     plt.pie(query_distribution, labels=novels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
     plt.title('Distribution of User Queries Across Novels')
@@ -78,26 +75,13 @@ def generate_pie_chart():
 
 
 def generate_bar_graph(user_queries):
-    # Combine all user queries into a single string
     all_text = ' '.join(user_queries)
-
-    # Preprocess the text
     processed_text = preprocess_text(all_text)
-
-    # Tokenize the text
     words = nltk.word_tokenize(processed_text)
-
-    # Remove stopwords
     stop_words = set(stopwords.words('english'))
     words_without_stop = [word for word in words if word not in stop_words]
-
-    # Calculate word frequencies
     word_freq = nltk.FreqDist(words_without_stop)
-
-    # Get the most common words (change the number based on your preference)
     common_words = dict(word_freq.most_common(5))
-
-    # Plotting a Bar Graph
     plt.figure(figsize=(10, 6))
     plt.bar(common_words.keys(), common_words.values(), color='blue')
     plt.xlabel('Words')
@@ -214,7 +198,7 @@ def novel():
 
 
         print('result  : ', result)
-        return jsonify({'novel': result["result"].strip()})
+        return jsonify({'novel': result["result"].strip(), 'name' : persistent_directory[19:]})
     except Exception as e:
         return jsonify({'error': str(e)})
 
