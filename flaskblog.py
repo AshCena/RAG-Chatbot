@@ -71,13 +71,16 @@ def generate_pie_chart():
         'novel-10.txt': 'Warrior of Two Worlds'
     }
 
+    with open('novel_pie_count.pkl', 'rb') as file:
+        novel_query_counter = pickle.load(file)
+
     novels = [novel_names_mapping[key] for key in novel_query_counter.keys()]
     query_distribution = list(novel_query_counter.values())
 
     plt.figure(figsize=(8, 8))
     plt.pie(query_distribution, labels=novels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
     plt.title('Distribution of User Queries Across Novels')
-    plt.savefig('pie_chart.png')
+    plt.savefig('./chatbot/public/pie_chart.png')
 
 
 def generate_bar_graph(queries):
@@ -95,23 +98,32 @@ def generate_bar_graph(queries):
     plt.title('Most Common Words in User Queries')
     plt.xticks(rotation=45, ha='right')
     plt.tight_layout()
-    plt.savefig('bar_graph.png')
+    plt.savefig('./chatbot/public/bar_graph.png')
 
 def generate_doughnut_chart():
     # Plotting a Doughnut Chart for Chit-Chat to Novel-Related Query Ratio
     global chitchat_counter, novel_counter  # Add this line
-    chitchat_counter = 0
-    novel_counter = 0
+    #chitchat_counter = 0
+    #novel_counter = 0
+
+    with open('chitchat_count.pkl', 'rb') as file:
+        chitchat_counter = pickle.load(file)
+
+    with open('novel_count.pkl', 'rb') as file:
+        novel_counter = pickle.load(file)
 
     plt.figure(figsize=(8, 8))
     plt.pie([chitchat_counter, novel_counter], labels=['Chit-Chat', 'Novel-Related'], autopct='%1.1f%%', startangle=90,
             colors=['rgb(255, 99, 132)', 'rgb(54, 162, 235)'])
     plt.title('Chit-Chat to Novel-Related Query Ratio')
-    plt.savefig('doughnut_chart.png')
+    plt.savefig('./chatbot/public/doughnut_chart.png')
 
 
 def line_chart():
     # Plot a line chart for response times
+
+    with open('response_time.pkl', 'rb') as file:
+        response_times = pickle.load(file)
     plt.figure(figsize=(10, 6))
     plt.plot(response_times, marker='o', linestyle='-', color='b', label='Query Response Time')
 
@@ -124,7 +136,7 @@ def line_chart():
     plt.title('Chatbot Response Time for Different Queries')
     plt.legend()
     plt.grid(True)
-    plt.savefig('response_time_chart.png')
+    plt.savefig('./chatbot/public/response_time_chart.png')
 
 @app.route('/generate', methods=['POST'])
 def generate_response():
@@ -149,6 +161,9 @@ def generate_response():
 
         response_time = end_time - start_time
         response_times.append(response_time)
+
+        with open('response_time.pkl', 'wb') as file:
+            pickle.dump(response_times, file)
 
         return jsonify({'generated_rerereresponse': generated_response[input_len:]})
 
@@ -186,9 +201,14 @@ def chitchat_classifier():
         print(predictions)
 
         if predictions[0] == 1:
+
             chitchat_counter += 1
+            with open('chitchat_count.pkl', 'wb') as file:
+                pickle.dump(chitchat_counter, file)
         else:
             novel_counter += 1
+            with open('novel_count.pkl', 'wb') as file:
+                pickle.dump(novel_counter, file)
         return jsonify({'isChitchat': str(predictions[0])})
 
     except Exception as e:
@@ -221,6 +241,8 @@ def novel():
             break
         book_name = book_name[2:]
         novel_query_counter[book_name] += 1
+        with open('novel_pie_count.pkl', 'wb') as file:
+            pickle.dump(novel_query_counter, file)
         print('book name : ', book_name)
 
         persistent_directory = chromadb_mapping[book_name]
