@@ -10,11 +10,14 @@ import nltk
 from nltk.corpus import stopwords
 import re
 import joblib
+import matplotlib.pyplot as plt
 from langchain.vectorstores import Chroma
 from langchain.embeddings import HuggingFaceEmbeddings
 from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
+from collections import defaultdict
+
 
 # nltk.download('stopwords')
 # nltk.download('punkt')
@@ -23,6 +26,9 @@ CORS(app)
 
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
+
+novel_query_counter = defaultdict(int)
+
 
 chromadb_mapping = {
     'novel-1.txt': './chroma/chroma_db_sherlock',
@@ -43,6 +49,19 @@ try:
 except FileNotFoundError:
     open_ai_key = ""
 llm = OpenAI(openai_api_key=open_ai_key)
+
+
+def generate_pie_chart():
+    # Get the data for the Pie Chart from the query counter
+    novels = list(novel_query_counter.keys())
+    query_distribution = list(novel_query_counter.values())
+
+    # Plotting a Pie Chart
+    plt.figure(figsize=(8, 8))
+    plt.pie(query_distribution, labels=novels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
+    plt.title('Distribution of User Queries Across Novels')
+    plt.savefig('pie_chart.png')  # Save the pie chart as an image (optional)
+    plt.show()
 
 @app.route('/generate', methods=['POST'])
 def generate_response():
@@ -111,6 +130,7 @@ def novel():
             vectordb = None
         # query = "what is the story of Alice"
         docs = loaded_vectordb.similarity_search(query, k=5)
+
         for rank, doc in enumerate(docs):
             print(f"Rank {rank+1}:")
             # print(doc.page_content)
@@ -119,6 +139,7 @@ def novel():
             book_name = doc.metadata['source']
             break
         book_name = book_name[2:]
+        novel_query_counter[book_name] += 1
         print('book name : ', book_name)
 
         persistent_directory = chromadb_mapping[book_name]
@@ -144,6 +165,9 @@ def novel():
             return_source_documents=True,
             chain_type_kwargs={"prompt": QA_CHAIN_PROMPT})
         result = qa_chain({"query": query})
+
+        generate_pie_chart()
+
         print('result  : ', result)
         return jsonify({'novel': result["result"].strip()})
     except Exception as e:
