@@ -6,8 +6,9 @@ function App() {
   const [newMessage, setNewMessage] = useState('');
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [allBooksSelected, setAllBooksSelected] = useState(false);
-  const [loading, setLoading] = useState(false); // Added loading state
-
+  const [loading, setLoading] = useState(false);
+  const [isChitChatFlag, setIsChitChatFlag] = useState(false);
+  let globalChitChatFlag = false;
 
   const addMessage = async () => {
     const userMessage = { content: newMessage, sender: 'user' };
@@ -18,19 +19,17 @@ function App() {
     console.log('in add message : ', messages)
   }
 
-  const getResponse = async () => {
+  const getChitChatResponse = async () => {
     let responseText;
     try {
-      // Make a POST API call to send the user message to the server
       const response = await fetch('http://127.0.0.1:5000/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          // Add any other headers if needed
         },
         body: JSON.stringify({
           user_input: newMessage
-        }), // Adjust payload structure as needed
+        }),
       }).then(response => response.json())
         .then(data => {
           console.log('response', data['generated_rerereresponse']);
@@ -42,10 +41,9 @@ function App() {
           console.log('response added : ', messages)
         });;
     } catch (error) {
-      // Handle network or other errors
       console.error('Error:', error.message);
     } finally {
-      setLoading(false); // Set loading to false when the API call is complete
+      setLoading(false);
     }
   }
 
@@ -54,7 +52,45 @@ function App() {
     e.preventDefault();
     if (newMessage.trim() === '') return;
     await addMessage()
-    await getResponse()
+    const flag = await isChitChat()
+    console.log('globalChitChatFlag : ', globalChitChatFlag)
+    if (globalChitChatFlag) {
+      console.log('this is chit chat!')
+      await getChitChatResponse()
+    } else {
+      console.log('this is a novel question!')
+    }
+  };
+
+  const isChitChat = async (e) => {
+    try {
+      console.log('in is chit chat')
+      const response = await fetch('http://127.0.0.1:5000/chitchatclassifier', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_input: newMessage
+        }),
+      }).then(response => response.json())
+        .then(data => {
+          console.log('isChitChat response', data['isChitchat']);
+          const chitChatFlag = data['isChitchat'];
+          console.log('chitChatFlag : ', chitChatFlag)
+          if (chitChatFlag === '1') {
+            console.log('in here')
+            globalChitChatFlag = true;
+          } else {
+            console.log('out here')
+            globalChitChatFlag = false;
+          }
+          return chitChatFlag;
+        });;
+    } catch (error) {
+      console.error('Error:', error.message);
+    } finally {
+    }
   };
 
   const handleBookCheckboxChange = (book) => {
@@ -70,7 +106,18 @@ function App() {
       setAllBooksSelected(false);
       setSelectedBooks([]);
     } else {
-      const allBooks = Array.from({ length: 10 }, (_, index) => `Book ${index + 1}`);
+      const allBooks = [
+        'The Adventures of Sherlock Holmes',
+        'Alice\'s Adventures in Wonderland',
+        'Great Expectations',
+        'Into the Primitive',
+        'Pride and Prejudice',
+        'Ramayana',
+        'The Great Gatsby',
+        'The Jungle Book',
+        'War and Peace',
+        'Warrior of Two Worlds',
+      ];
       setSelectedBooks(allBooks);
       setAllBooksSelected(true);
     }
@@ -79,7 +126,7 @@ function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <h1>RAA Chat Bot</h1>
+        <h1>ChatGenix Bot</h1>
       </header>
       <div className="App-content">
         <div className="ChatContainer">
@@ -109,7 +156,18 @@ function App() {
         <div className="BookSelectionContainer">
           <h2>Topic Selection</h2>
           <div>
-            {Array.from({ length: 10 }, (_, index) => `Book ${index + 1}`).map((book, index) => (
+            {[
+              'The Adventures of Sherlock Holmes',
+              'Alice\'s Adventures in Wonderland',
+              'Great Expectations',
+              'Into the Primitive',
+              'Pride and Prejudice',
+              'Ramayana',
+              'The Great Gatsby',
+              'The Jungle Book',
+              'War and Peace',
+              'Warrior of Two Worlds',
+            ].map((book, index) => (
               <div key={index} className="CheckboxContainer">
                 <input
                   type="checkbox"
@@ -121,6 +179,7 @@ function App() {
               </div>
             ))}
           </div>
+          <br></br><br></br>
           <div className="CheckboxContainer">
             <input type="checkbox" id="selectAll" onChange={handleSelectAllBooks} />
             <label htmlFor="selectAll">Select All</label>
