@@ -17,7 +17,7 @@ from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from collections import defaultdict
-
+import pickle
 
 # nltk.download('stopwords')
 # nltk.download('punkt')
@@ -28,6 +28,7 @@ model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
 
 novel_query_counter = defaultdict(int)
+user_queries = []
 
 
 chromadb_mapping = {
@@ -74,8 +75,8 @@ def generate_pie_chart():
     plt.savefig('pie_chart.png')
 
 
-def generate_bar_graph(user_queries):
-    all_text = ' '.join(user_queries)
+def generate_bar_graph(queries):
+    all_text = ' '.join(queries)
     processed_text = preprocess_text(all_text)
     words = nltk.word_tokenize(processed_text)
     stop_words = set(stopwords.words('english'))
@@ -99,7 +100,9 @@ def generate_response():
         print('data : ', data)
         user_input = data['user_input']
         print('user_input : ', user_input)
-
+        user_queries.append(user_input)
+        with open('user_queries.pkl', 'wb') as file:
+            pickle.dump(user_queries, file)
         input_len = len(user_input)
         print('input_len : ', input_len)
         input_ids = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors='pt')
@@ -128,8 +131,12 @@ def chitchat_classifier():
         data = request.json
         print('data : ', data)
         user_input = data['user_input']
+        user_queries.append(user_input)
 
+        with open('user_queries.pkl', 'wb') as file:
+            pickle.dump(user_queries, file)
         loaded_model = joblib.load('svm_model_new.pkl')
+
         tfidf_vectorizer = joblib.load('tfidf_vectorizer.pkl')
         user_input = preprocess_text(user_input)
         print('user_input : ', user_input)
@@ -205,11 +212,12 @@ def novel():
 @app.route('/visualization', methods=['GET'])
 def generate_visualization():
     try:
-        data = request.json
-        user_queries = data.get('user_queries', [])
-
+        # data = request.json
+        # user_queries = data.get('user_queries', [])
+        with open('user_queries.pkl', 'rb') as file:
+            loaded_array = pickle.load(file)
         generate_pie_chart()
-        generate_bar_graph(user_queries)
+        generate_bar_graph(loaded_array)
 
         return jsonify({'message': 'Visualization generated successfully.'})
     except Exception as e:
