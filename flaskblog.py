@@ -17,12 +17,17 @@ from langchain.llms import OpenAI
 from langchain.prompts import PromptTemplate
 from langchain.chains import RetrievalQA
 from collections import defaultdict
+
 import pickle
+import time
 
 # nltk.download('stopwords')
 # nltk.download('punkt')
 app = Flask(__name__)
 CORS(app)
+
+response_times = []
+
 
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
@@ -92,6 +97,34 @@ def generate_bar_graph(queries):
     plt.tight_layout()
     plt.savefig('bar_graph.png')
 
+def generate_doughnut_chart():
+    # Plotting a Doughnut Chart for Chit-Chat to Novel-Related Query Ratio
+    global chitchat_counter, novel_counter  # Add this line
+    chitchat_counter = 0
+    novel_counter = 0
+
+    plt.figure(figsize=(8, 8))
+    plt.pie([chitchat_counter, novel_counter], labels=['Chit-Chat', 'Novel-Related'], autopct='%1.1f%%', startangle=90,
+            colors=['rgb(255, 99, 132)', 'rgb(54, 162, 235)'])
+    plt.title('Chit-Chat to Novel-Related Query Ratio')
+    plt.savefig('doughnut_chart.png')
+
+
+def line_chart():
+    # Plot a line chart for response times
+    plt.figure(figsize=(10, 6))
+    plt.plot(response_times, marker='o', linestyle='-', color='b', label='Query Response Time')
+
+    # Calculate and plot average response time
+    avg_response_time = sum(response_times) / len(response_times)
+    plt.axhline(y=avg_response_time, linestyle='--', color='r', label='Average Response Time')
+
+    plt.xlabel('Query Number')
+    plt.ylabel('Response Time (seconds)')
+    plt.title('Chatbot Response Time for Different Queries')
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('response_time_chart.png')
 
 @app.route('/generate', methods=['POST'])
 def generate_response():
@@ -100,15 +133,22 @@ def generate_response():
         print('data : ', data)
         user_input = data['user_input']
         print('user_input : ', user_input)
+
         user_queries.append(user_input)
         with open('user_queries.pkl', 'wb') as file:
             pickle.dump(user_queries, file)
+        start_time = time.time()
+
         input_len = len(user_input)
         print('input_len : ', input_len)
         input_ids = tokenizer.encode(user_input + tokenizer.eos_token, return_tensors='pt')
         response_ids = model.generate(input_ids, max_length=100, num_beams=5, no_repeat_ngram_size=2, top_k=50, top_p=0.95)
         generated_response = tokenizer.decode(response_ids[0], skip_special_tokens=True)
         print('response id : ', response_ids)
+        end_time = time.time()
+
+        response_time = end_time - start_time
+        response_times.append(response_time)
 
         return jsonify({'generated_rerereresponse': generated_response[input_len:]})
 
@@ -144,6 +184,11 @@ def chitchat_classifier():
         new_texts_tfidf = tfidf_vectorizer.transform(new_texts)
         predictions = loaded_model.predict(new_texts_tfidf)
         print(predictions)
+
+        if predictions[0] == 1:
+            chitchat_counter += 1
+        else:
+            novel_counter += 1
         return jsonify({'isChitchat': str(predictions[0])})
 
     except Exception as e:
@@ -218,7 +263,8 @@ def generate_visualization():
             loaded_array = pickle.load(file)
         generate_pie_chart()
         generate_bar_graph(loaded_array)
-
+        generate_doughnut_chart()
+        line_chart()
         return jsonify({'message': 'Visualization generated successfully.'})
     except Exception as e:
         return jsonify({'error': str(e)})
