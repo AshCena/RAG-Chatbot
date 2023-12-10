@@ -6,13 +6,20 @@ function App() {
   const [newMessage, setNewMessage] = useState('');
   const [selectedBooks, setSelectedBooks] = useState([]);
   const [allBooksSelected, setAllBooksSelected] = useState(false);
+  const [loading, setLoading] = useState(false); // Added loading state
 
-  const handleSendMessage = async (e) => {
-    let responseText;
-    e.preventDefault();
-    if (newMessage.trim() === '') return;
 
+  const addMessage = async () => {
     const userMessage = { content: newMessage, sender: 'user' };
+    const updatedMessages = [...messages, userMessage];
+    console.log('updated messages : ', updatedMessages);
+    setMessages(updatedMessages);
+    setNewMessage('');
+    console.log('in add message : ', messages)
+  }
+
+  const getResponse = async () => {
+    let responseText;
     try {
       // Make a POST API call to send the user message to the server
       const response = await fetch('http://127.0.0.1:5000/generate', {
@@ -28,16 +35,26 @@ function App() {
         .then(data => {
           console.log('response', data['generated_rerereresponse']);
           responseText = data['generated_rerereresponse'];
+          const userMessage = { content: newMessage, sender: 'user' };
           const botMessage = { content: responseText, sender: 'bot' };
           const updatedMessages = [...messages, userMessage, botMessage];
           setMessages(updatedMessages);
-          setNewMessage('');
+          console.log('response added : ', messages)
         });;
     } catch (error) {
       // Handle network or other errors
       console.error('Error:', error.message);
+    } finally {
+      setLoading(false); // Set loading to false when the API call is complete
     }
+  }
 
+  const handleSendMessage = async (e) => {
+    setLoading(true);
+    e.preventDefault();
+    if (newMessage.trim() === '') return;
+    await addMessage()
+    await getResponse()
   };
 
   const handleBookCheckboxChange = (book) => {
@@ -85,7 +102,7 @@ function App() {
                 onChange={(e) => setNewMessage(e.target.value)}
                 style={{ width: '300px' }}
               />
-              <button style={{ width: '60px' }} type='submit' onClick={handleSendMessage}>Send</button>
+              <button style={{ width: '60px' }} type='submit' onClick={handleSendMessage} disabled={loading} >{loading ? 'Loading' : 'Send'}</button>
             </form>
           </div>
         </div>
