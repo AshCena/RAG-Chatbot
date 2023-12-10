@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import './App.css';
 
 function App() {
@@ -8,7 +8,9 @@ function App() {
   const [allBooksSelected, setAllBooksSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isChitChatFlag, setIsChitChatFlag] = useState(false);
-  let globalChitChatFlag = false;
+  let globalChitChatFlag = true;
+  const messageListRef = useRef(null);
+
   const allBooks = [
     'The Adventures of Sherlock Holmes',
     'Alice\'s Adventures in Wonderland',
@@ -22,16 +24,16 @@ function App() {
     'Warrior of Two Worlds',
   ];
   const nameToNovel = {
-    'sherlock' : 'The Adventures of Sherlock Holmes',
-    'alice' : 'Alice\'s Adventures in Wonderland',
-    'good' : 'And It Was Good',
-    'primitive' : 'Into the Primitive',
-    'pigs_is_pigs' : 'Pigs is Pigs',
-    'usher' : 'The Fall of the House of Usher',
-    'magi' : 'The Gift of the Magi',
-    'jungle' : 'The Jungle Book',
-    'redroom' : 'The Red Room',
-    'warrior' : 'Warrior of Two Worlds'
+    'sherlock': 'The Adventures of Sherlock Holmes',
+    'alice': 'Alice\'s Adventures in Wonderland',
+    'good': 'And It Was Good',
+    'primitive': 'Into the Primitive',
+    'pigs_is_pigs': 'Pigs is Pigs',
+    'usher': 'The Fall of the House of Usher',
+    'magi': 'The Gift of the Magi',
+    'jungle': 'The Jungle Book',
+    'redroom': 'The Red Room',
+    'warrior': 'Warrior of Two Worlds'
   }
   const addMessage = async () => {
     const userMessage = { content: newMessage, sender: 'user' };
@@ -116,6 +118,7 @@ function App() {
       console.log('this is a novel question!')
       await getNovelResponse()
     }
+    globalChitChatFlag = true;
   };
 
   const isChitChat = async (e) => {
@@ -150,7 +153,7 @@ function App() {
   };
 
   const handleBookCheckboxChange = (book) => {
-    console.log(' in  handleBookCheckboxChange :' , book)
+    console.log(' in  handleBookCheckboxChange :', book)
     const updatedSelectedBooks = selectedBooks.includes(book)
       ? selectedBooks.filter((selectedBook) => selectedBook !== book)
       : [...selectedBooks, book];
@@ -168,6 +171,12 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    if (messageListRef.current) {
+      messageListRef.current.scrollTop = messageListRef.current.scrollHeight;
+    }
+  }, [messages]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -175,7 +184,7 @@ function App() {
       </header>
       <div className="App-content">
         <div className="ChatContainer">
-          <div className="MessageList">
+          <div className="MessageList" ref={messageListRef}>
             {messages.map((message, index) => (
               <div
                 key={index}
