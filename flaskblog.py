@@ -52,16 +52,61 @@ llm = OpenAI(openai_api_key=open_ai_key)
 
 
 def generate_pie_chart():
+    # Map novel filenames to their corresponding names
+    novel_names_mapping = {
+        'novel-1.txt': 'The Adventures of Sherlock Holmes',
+        'novel-2.txt': 'Alice\'s Adventures in Wonderland',
+        'novel-3.txt': 'And It Was Good',
+        'novel-4.txt': 'Into the Primitive',
+        'novel-5.txt': 'Pigs is Pigs',
+        'novel-6.txt': 'The Fall of the House of Usher',
+        'novel-7.txt': 'The Gift of the Magi',
+        'novel-8.txt': 'The Jungle Book',
+        'novel-9.txt': 'The Red Room',
+        'novel-10.txt': 'Warrior of Two Worlds'
+    }
+
     # Get the data for the Pie Chart from the query counter
-    novels = list(novel_query_counter.keys())
+    novels = [novel_names_mapping[key] for key in novel_query_counter.keys()]
     query_distribution = list(novel_query_counter.values())
 
     # Plotting a Pie Chart
     plt.figure(figsize=(8, 8))
     plt.pie(query_distribution, labels=novels, autopct='%1.1f%%', startangle=90, colors=plt.cm.Paired.colors)
     plt.title('Distribution of User Queries Across Novels')
-    plt.savefig('pie_chart.png')  # Save the pie chart as an image (optional)
-    plt.show()
+    plt.savefig('pie_chart.png')
+
+
+def generate_bar_graph(user_queries):
+    # Combine all user queries into a single string
+    all_text = ' '.join(user_queries)
+
+    # Preprocess the text
+    processed_text = preprocess_text(all_text)
+
+    # Tokenize the text
+    words = nltk.word_tokenize(processed_text)
+
+    # Remove stopwords
+    stop_words = set(stopwords.words('english'))
+    words_without_stop = [word for word in words if word not in stop_words]
+
+    # Calculate word frequencies
+    word_freq = nltk.FreqDist(words_without_stop)
+
+    # Get the most common words (change the number based on your preference)
+    common_words = dict(word_freq.most_common(5))
+
+    # Plotting a Bar Graph
+    plt.figure(figsize=(10, 6))
+    plt.bar(common_words.keys(), common_words.values(), color='blue')
+    plt.xlabel('Words')
+    plt.ylabel('Count')
+    plt.title('Most Common Words in User Queries')
+    plt.xticks(rotation=45, ha='right')
+    plt.tight_layout()
+    plt.savefig('bar_graph.png')
+
 
 @app.route('/generate', methods=['POST'])
 def generate_response():
@@ -166,12 +211,26 @@ def novel():
             chain_type_kwargs={"prompt": QA_CHAIN_PROMPT})
         result = qa_chain({"query": query})
 
-        generate_pie_chart()
+
 
         print('result  : ', result)
         return jsonify({'novel': result["result"].strip()})
     except Exception as e:
         return jsonify({'error': str(e)})
+
+@app.route('/visualization', methods=['GET'])
+def generate_visualization():
+    try:
+        data = request.json
+        user_queries = data.get('user_queries', [])
+
+        generate_pie_chart()
+        generate_bar_graph(user_queries)
+
+        return jsonify({'message': 'Visualization generated successfully.'})
+    except Exception as e:
+        return jsonify({'error': str(e)})
+
 
 if __name__ == '__main__':
     app.run(debug=True)
