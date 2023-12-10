@@ -9,7 +9,18 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [isChitChatFlag, setIsChitChatFlag] = useState(false);
   let globalChitChatFlag = false;
-
+  const allBooks = [
+    'The Adventures of Sherlock Holmes',
+    'Alice\'s Adventures in Wonderland',
+    'And It Was Good',
+    'Into the Primitive',
+    'Pigs is Pigs',
+    'The Fall of the House of Usher',
+    'The Gift of the Magi',
+    'The Jungle Book',
+    'The Red Room',
+    'Warrior of Two Worlds',
+  ];
   const addMessage = async () => {
     const userMessage = { content: newMessage, sender: 'user' };
     const updatedMessages = [...messages, userMessage];
@@ -17,6 +28,35 @@ function App() {
     setMessages(updatedMessages);
     setNewMessage('');
     console.log('in add message : ', messages)
+  }
+
+  const getNovelResponse = async () => {
+    console.log(' in  getNovelResponse')
+    let responseText;
+    try {
+      const response = await fetch('http://127.0.0.1:5000/novel', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          user_input: newMessage
+        }),
+      }).then(response => response.json())
+        .then(data => {
+          console.log('response', data['novel']);
+          responseText = data['novel'];
+          const userMessage = { content: newMessage, sender: 'user' };
+          const botMessage = { content: responseText, sender: 'bot' };
+          const updatedMessages = [...messages, userMessage, botMessage];
+          setMessages(updatedMessages);
+          console.log('response added : ', messages)
+        });;
+    } catch (error) {
+      console.error('Error:', error.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   const getChitChatResponse = async () => {
@@ -59,6 +99,7 @@ function App() {
       await getChitChatResponse()
     } else {
       console.log('this is a novel question!')
+      await getNovelResponse()
     }
   };
 
@@ -106,18 +147,6 @@ function App() {
       setAllBooksSelected(false);
       setSelectedBooks([]);
     } else {
-      const allBooks = [
-        'The Adventures of Sherlock Holmes',
-        'Alice\'s Adventures in Wonderland',
-        'Great Expectations',
-        'Into the Primitive',
-        'Pride and Prejudice',
-        'Ramayana',
-        'The Great Gatsby',
-        'The Jungle Book',
-        'War and Peace',
-        'Warrior of Two Worlds',
-      ];
       setSelectedBooks(allBooks);
       setAllBooksSelected(true);
     }
@@ -156,18 +185,7 @@ function App() {
         <div className="BookSelectionContainer">
           <h2>Topic Selection</h2>
           <div>
-            {[
-              'The Adventures of Sherlock Holmes',
-              'Alice\'s Adventures in Wonderland',
-              'Great Expectations',
-              'Into the Primitive',
-              'Pride and Prejudice',
-              'Ramayana',
-              'The Great Gatsby',
-              'The Jungle Book',
-              'War and Peace',
-              'Warrior of Two Worlds',
-            ].map((book, index) => (
+            {allBooks.map((book, index) => (
               <div key={index} className="CheckboxContainer">
                 <input
                   type="checkbox"
