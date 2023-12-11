@@ -262,10 +262,10 @@ def novel():
 
         #RAG--------------------------------
         new_line = '\n'
-        template = f"Use the following pieces of context to answer truthfully.{new_line}If the context does not provide the truthful answer, make the answer as truthful as possible.{new_line}Use 15 words maximum. Keep the response as concise as possible.{new_line}{{context}}{new_line}Question: {{question}}{new_line}Response: "
+        template = f"Use the following pieces of context to answer truthfully.{new_line}If the context does not provide the truthful answer, make the answer as truthful as possible.{new_line}Use as many words as you can. Keep the response as correct as possible.{new_line}{{context}}{new_line}Question: {{question}}{new_line}Response: "
         QA_CHAIN_PROMPT = PromptTemplate(input_variables=["context", "question"],template=template,)
         qa_chain = RetrievalQA.from_chain_type(llm,
-            retriever=final_vectordb.as_retriever(),
+            retriever=final_vectordb.as_retriever(k=10),
             return_source_documents=True,
             chain_type_kwargs={"prompt": QA_CHAIN_PROMPT})
         result = qa_chain({"query": query})

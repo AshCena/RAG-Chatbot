@@ -14,11 +14,11 @@ function VisualizationPage() {
 
   const fetchImages = async () => {
     // Fetch image data from your API or define it here
-    try {
-      await fetch('http://127.0.0.1:5000/visualization', {method: 'POST'});
-    }catch{
-      console.log("No fetch")
-    }
+    // try {
+    //   await fetch('http://127.0.0.1:5000/visualization', {method: 'POST'});
+    // }catch{
+    //   console.log("No fetch")
+    // }
 
     const imageData = [
       // Example data structure
@@ -34,15 +34,6 @@ function VisualizationPage() {
     setImages(imageData);
   };
 
-  const refreshImages = async () => {
-    // Call the refresh API
-    try {
-      await fetch('http://refreshapi:3000/pppp', { method: 'POST' });
-      fetchImages(); // Refetch images after refresh
-    } catch (error) {
-      console.error('Error refreshing images:', error);
-    }
-  };
 
   const settings = {
     dots: true,
