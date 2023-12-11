@@ -105,7 +105,6 @@ def generate_bar_graph(queries):
 
 def generate_doughnut_chart():
     # global chitchat_counter, novel_counter
-    # Plotting a Doughnut Chart for Chit-Chat to Novel-Related Query Ratio
     with open('chitchat_count.pkl', 'rb') as file:
         chitchat_counter = pickle.load(file)
     print('chitchat_counter line 111 : ', chitchat_counter)
@@ -116,21 +115,17 @@ def generate_doughnut_chart():
 
     plt.figure(figsize=(8, 8))
     plt.pie([chitchat_counter, novel_counter], labels=['Chit-Chat', 'Novel-Related'], autopct='%1.1f%%', startangle=90,
-        colors=['#FF6347', '#3498db'])  # Hex color codes for 'rgb(255, 99, 132)' and 'rgb(54, 162, 235)'
+        colors=['#FF6347', '#3498db'])
     plt.title('Chit-Chat to Novel-Related Query Ratio')
     plt.savefig('./chatbot/public/doughnut_chart.png')
 
 
 def line_chart():
-    # Plot a line chart for response times
-
     with open('response_time.pkl', 'rb') as file:
         response_times = pickle.load(file)
     print('response_times loaded : ', response_times)
     plt.figure(figsize=(10, 6))
     plt.plot(response_times, marker='o', linestyle='-', color='b', label='Query Response Time')
-
-    # Calculate and plot average response time
     avg_response_time = sum(response_times) / len(response_times)
     plt.axhline(y=avg_response_time, linestyle='--', color='r', label='Average Response Time')
 
@@ -205,7 +200,6 @@ def chitchat_classifier():
         with open('user_queries.pkl', 'wb') as file:
             pickle.dump(user_queries, file)
         print('dump user_queries ', user_queries)
-
 
         loaded_model = joblib.load('svm_model_new.pkl')
 
