@@ -69,7 +69,9 @@ function App() {
           console.log('data[\'name\'] : ', data['name']);
           responseText = data['novel'];
           console.log('Novel name : ', nameToNovel[data['name']])
-          handleBookCheckboxChange(nameToNovel[data['name']])
+          console.log('selected : ', selectedBooks)
+          const updatedSelectedBooks = [nameToNovel[data['name']]];
+          setSelectedBooks(updatedSelectedBooks);
           const userMessage = { content: newMessage, sender: 'user' };
           const botMessage = { content: responseText, sender: 'bot' };
           const updatedMessages = [...messages, userMessage, botMessage];
@@ -185,68 +187,68 @@ function App() {
   }, [messages]);
 
   return (
-      <Router>
+    <Router>
 
       <div className="App">
-      <header className="App-header">
-        <h1>ChatGenix Bot</h1>
-        <NavigationButton /> {/* Use the NavigationButton component */}
+        <header className="App-header">
+          <h1>ChatGenix Bot</h1>
+          <NavigationButton /> {/* Use the NavigationButton component */}
 
-      </header>
+        </header>
         <Routes>
           <Route path="/" element={
-      <div className="App-content">
-        <div className="ChatContainer">
-          <div className="MessageList" ref={messageListRef}>
-            {messages.map((message, index) => (
-              <div
-                key={index}
-                className={`Message ${message.sender === 'user' ? 'UserMessage' : 'BotMessage'}`}
-              >
-                {message.content}
+            <div className="App-content">
+              <div className="ChatContainer">
+                <div className="MessageList" ref={messageListRef}>
+                  {messages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`Message ${message.sender === 'user' ? 'UserMessage' : 'BotMessage'}`}
+                    >
+                      {message.content}
+                    </div>
+                  ))}
+                </div>
+                <div className="MessageInputContainer">
+                  <form>
+                    <input
+                      type="text"
+                      placeholder="Type a message..."
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      style={{ width: '300px' }}
+                    />
+                    <button style={{ width: '60px' }} type='submit' onClick={handleSendMessage} disabled={loading} >{loading ? 'Loading' : 'Send'}</button>
+                  </form>
+                </div>
               </div>
-            ))}
-          </div>
-          <div className="MessageInputContainer">
-            <form>
-              <input
-                type="text"
-                placeholder="Type a message..."
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                style={{ width: '300px' }}
-              />
-              <button style={{ width: '60px' }} type='submit' onClick={handleSendMessage} disabled={loading} >{loading ? 'Loading' : 'Send'}</button>
-            </form>
-          </div>
-        </div>
-        <div className="BookSelectionContainer">
-          <h2>Topic Selection</h2>
-          <div>
-            {allBooks.map((book, index) => (
-              <div key={index} className="CheckboxContainer">
-                <input
-                  type="checkbox"
-                  id={book}
-                  checked={selectedBooks.includes(book)}
-                  onChange={() => handleBookCheckboxChange(book)}
-                />
-                <label htmlFor={book}>{book}</label>
+              <div className="BookSelectionContainer">
+                <h2>Topic Selection</h2>
+                <div>
+                  {allBooks.map((book, index) => (
+                    <div key={index} className="CheckboxContainer">
+                      <input
+                        type="checkbox"
+                        id={book}
+                        checked={selectedBooks.includes(book)}
+                        onChange={() => handleBookCheckboxChange(book)}
+                      />
+                      <label htmlFor={book}>{book}</label>
+                    </div>
+                  ))}
+                </div>
+                <br></br><br></br>
+                <div className="CheckboxContainer">
+                  <input type="checkbox" id="selectAll" onChange={handleSelectAllBooks} />
+                  <label htmlFor="selectAll">Select All</label>
+                </div>
               </div>
-            ))}
-          </div>
-          <br></br><br></br>
-          <div className="CheckboxContainer">
-            <input type="checkbox" id="selectAll" onChange={handleSelectAllBooks} />
-            <label htmlFor="selectAll">Select All</label>
-          </div>
-        </div>
-      </div>
-        } />
+            </div>
+          } />
           <Route path="/visualizations" element={<VisualizationPage />} />
         </Routes>
-    </div>
-      </Router>
+      </div>
+    </Router>
   );
 }
 
