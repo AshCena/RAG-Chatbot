@@ -32,7 +32,7 @@ response_times = []
 model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
 
-novel_query_counter = defaultdict(int)
+# novel_query_counter = defaultdict(int)
 user_queries = []
 
 global chitchat_counter, novel_counter
@@ -75,6 +75,7 @@ def generate_pie_chart():
 
     with open('novel_pie_count.pkl', 'rb') as file:
         novel_query_counter = pickle.load(file)
+    print('novel_query_counter line 78 : ', novel_query_counter)
 
     novels = [novel_names_mapping[key] for key in novel_query_counter.keys()]
     query_distribution = list(novel_query_counter.values())
@@ -107,9 +108,11 @@ def generate_doughnut_chart():
     # Plotting a Doughnut Chart for Chit-Chat to Novel-Related Query Ratio
     with open('chitchat_count.pkl', 'rb') as file:
         chitchat_counter = pickle.load(file)
+    print('chitchat_counter line 111 : ', chitchat_counter)
 
     with open('novel_count.pkl', 'rb') as file:
         novel_counter = pickle.load(file)
+    print('novel_counter line 115 : ', novel_counter)
 
     plt.figure(figsize=(8, 8))
     plt.pie([chitchat_counter, novel_counter], labels=['Chit-Chat', 'Novel-Related'], autopct='%1.1f%%', startangle=90,
@@ -123,6 +126,7 @@ def line_chart():
 
     with open('response_time.pkl', 'rb') as file:
         response_times = pickle.load(file)
+    print('response_times loaded : ', response_times)
     plt.figure(figsize=(10, 6))
     plt.plot(response_times, marker='o', linestyle='-', color='b', label='Query Response Time')
 
@@ -148,6 +152,7 @@ def generate_response():
         user_queries.append(user_input)
         with open('user_queries.pkl', 'wb') as file:
             pickle.dump(user_queries, file)
+        print('user_queries dumped : ', user_queries)
         start_time = time.time()
 
         input_len = len(user_input)
@@ -190,6 +195,7 @@ def chitchat_classifier():
 
         with open('user_queries.pkl', 'wb') as file:
             pickle.dump(user_queries, file)
+        print('dump user_queries ', user_queries)
         loaded_model = joblib.load('svm_model_new.pkl')
 
         tfidf_vectorizer = joblib.load('tfidf_vectorizer.pkl')
@@ -241,6 +247,9 @@ def novel():
             book_name = doc.metadata['source']
             break
         book_name = book_name[2:]
+        with open('novel_pie_count.pkl', 'rb') as file:
+            novel_query_counter = pickle.load(file)
+        print('novel_query_counter loaded : ', novel_query_counter)
         novel_query_counter[book_name] += 1
         with open('novel_pie_count.pkl', 'wb') as file:
             pickle.dump(novel_query_counter, file)
@@ -284,6 +293,7 @@ def generate_visualization():
         # user_queries = data.get('user_queries', [])
         with open('user_queries.pkl', 'rb') as file:
             loaded_array = pickle.load(file)
+        print('load user_queries ', user_queries)
         generate_pie_chart()
         generate_bar_graph(loaded_array)
         generate_doughnut_chart()
