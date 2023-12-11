@@ -35,9 +35,9 @@ tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
 # novel_query_counter = defaultdict(int)
 # user_queries = []
 
-global chitchat_counter, novel_counter
-chitchat_counter = 0
-novel_counter = 0
+# global chitchat_counter, novel_counter
+# chitchat_counter = 0
+# novel_counter = 0
 chromadb_mapping = {
     'novel-1.txt': './chroma/chroma_db_sherlock',
     'novel-2.txt': './chroma/chroma_db_alice',
@@ -104,7 +104,7 @@ def generate_bar_graph(queries):
     plt.savefig('./chatbot/public/bar_graph.png')
 
 def generate_doughnut_chart():
-    global chitchat_counter, novel_counter
+    # global chitchat_counter, novel_counter
     # Plotting a Doughnut Chart for Chit-Chat to Novel-Related Query Ratio
     with open('chitchat_count.pkl', 'rb') as file:
         chitchat_counter = pickle.load(file)
@@ -191,7 +191,7 @@ def preprocess_text(text):
 @app.route('/chitchatclassifier', methods=['POST'])
 def chitchat_classifier():
     try:
-        global chitchat_counter, novel_counter
+        # global chitchat_counter, novel_counter
         data = request.json
         print('chitchatclassifier data : ', data)
         user_input = data['user_input']
@@ -218,11 +218,17 @@ def chitchat_classifier():
         print('predictions : ', predictions)
         if predictions[0] == 1:
             print(' in if ')
+            with open('chitchat_count.pkl', 'rb') as file:
+                chitchat_counter = pickle.load(file)
+            print('chitchat_counter line 111 : ', chitchat_counter)
             chitchat_counter += 1
             with open('chitchat_count.pkl', 'wb') as file:
                 pickle.dump(chitchat_counter, file)
         else:
             print(' in else ')
+            with open('novel_count.pkl', 'rb') as file:
+                novel_counter = pickle.load(file)
+            print('novel_counter line 115 : ', novel_counter)
             novel_counter += 1
             with open('novel_count.pkl', 'wb') as file:
                 pickle.dump(novel_counter, file)
