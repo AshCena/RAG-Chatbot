@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
-import VisualizationPage from './Visualization'; // Import the new component
-import NavigationButton from './NavigationButton'; // Import the new component
+import VisualizationPage from './Visualization'; 
+import NavigationButton from './NavigationButton';
 
 
 import './App.css';
@@ -192,7 +192,7 @@ function App() {
       <div className="App">
         <header className="App-header">
           <h1>ChatGenix Bot</h1>
-          <NavigationButton /> {/* Use the NavigationButton component */}
+          <NavigationButton /> {}
 
         </header>
         <Routes>
