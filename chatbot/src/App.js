@@ -1,7 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom';
+import VisualizationPage from './Visualization'; // Import the new component
+import NavigationButton from './NavigationButton'; // Import the new component
+
+
 import './App.css';
 
 function App() {
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [selectedBooks, setSelectedBooks] = useState([]);
@@ -10,6 +16,7 @@ function App() {
   const [isChitChatFlag, setIsChitChatFlag] = useState(false);
   let globalChitChatFlag = true;
   const messageListRef = useRef(null);
+
 
   const allBooks = [
     'The Adventures of Sherlock Holmes',
@@ -178,10 +185,16 @@ function App() {
   }, [messages]);
 
   return (
-    <div className="App">
+      <Router>
+
+      <div className="App">
       <header className="App-header">
         <h1>ChatGenix Bot</h1>
+        <NavigationButton /> {/* Use the NavigationButton component */}
+
       </header>
+        <Routes>
+          <Route path="/" element={
       <div className="App-content">
         <div className="ChatContainer">
           <div className="MessageList" ref={messageListRef}>
@@ -229,7 +242,11 @@ function App() {
           </div>
         </div>
       </div>
+        } />
+          <Route path="/visualizations" element={<VisualizationPage />} />
+        </Routes>
     </div>
+      </Router>
   );
 }
 
