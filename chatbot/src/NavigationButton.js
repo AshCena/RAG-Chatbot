@@ -9,7 +9,7 @@ function NavigationButton() {
         navigate('/visualizations');
     };
 
-    return <button  onClick={handleVisualizationClick}  style={{ width: '30%' }} >Visualizations</button>;
+    return <button  onClick={handleVisualizationClick}  style={{ width: '30%', marginLeft: "auto" }} >Visualizations</button>;
 
 }
 

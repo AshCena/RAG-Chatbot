@@ -22,10 +22,12 @@ function VisualizationPage() {
 
     const imageData = [
       // Example data structure
-      { src: '/bar_graph.png', explanation: 'Explanation for Image 1' },
-      { src: '/doughnut_chart.png', explanation: 'Explanation for Image 2' },
-      { src: '/pie_chart.png', explanation: 'Explanation for Image 2' },
-      { src: 'response_time_chart.png', explanation: 'Explanation for Image 2' },
+      { src: '/bar_graph.png', explanation: 'We plotted a bar chart to show the 10 most common words which are  present in the user queries. Bar graphs can be used for large variations in data and can represent additional variables if needed, like the frequency of words over time\n' },
+      { src: '/doughnut_chart.png', explanation: 'We plotted a doughnut graph to provide the count of how many queries are chit-chat queries and how many are novel queries fired by the user. Similar to pie charts, they emphasize the proportion of different types of queries—chit-chat versus novel-related' },
+      { src: '/pie_chart.png', explanation: '\'We plotted a pie chart to show the distribution of user queries across different topics. This would help us understand which topics are more prevalent. They allow for immediate comparison of proportions, showing which topics are most and least common within the user queries.\n' },
+      { src: 'response_time_chart.png', explanation: 'We also added a plot in the form of a line chart representing the response times for different queries, and  a horizontal line indicating the average response time.\n' +
+            'Line charts excel at showing trends over time or across categories. Here, they can show how response times vary across different queries.\n' +
+            'By including an average response time line, you can benchmark individual query response times against an average, identifying outliers and performance dips or spikes.If the data is time-based, line charts can show how response times have improved or worsened, providing insights into system performance or user experience trends\n' },
 
       // Add more images
     ];
@@ -53,8 +55,8 @@ function VisualizationPage() {
 
   return (
       <div>
-        <h2>Graphs for Visualization</h2>
-        <button onClick={refreshImages} style={{ width: '30%' }}>Refresh</button>
+        <h2 style={{backgroundColor: "white"}}>Graphs for Visualization</h2>
+        {/*<button onClick={refreshImages} style={{ width: '30%' }}>Refresh</button>*/}
         <Slider {...settings}>
           {images.map((img, index) => (
               <div key={index} className="image-card">
