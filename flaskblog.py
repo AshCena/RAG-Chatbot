@@ -33,7 +33,7 @@ model = AutoModelForCausalLM.from_pretrained("microsoft/DialoGPT-large")
 tokenizer = AutoTokenizer.from_pretrained("microsoft/DialoGPT-large")
 
 # novel_query_counter = defaultdict(int)
-user_queries = []
+# user_queries = []
 
 global chitchat_counter, novel_counter
 chitchat_counter = 0
@@ -149,6 +149,10 @@ def generate_response():
         user_input = data['user_input']
         print('user_input : ', user_input)
 
+        with open('user_queries.pkl', 'rb') as file:
+            user_queries = pickle.load(file)
+        print('load user_queries ', user_queries)
+
         user_queries.append(user_input)
         with open('user_queries.pkl', 'wb') as file:
             pickle.dump(user_queries, file)
@@ -191,11 +195,18 @@ def chitchat_classifier():
         data = request.json
         print('chitchatclassifier data : ', data)
         user_input = data['user_input']
+
+        with open('user_queries.pkl', 'rb') as file:
+            user_queries = pickle.load(file)
+        print('load user_queries ', user_queries)
+
         user_queries.append(user_input)
 
         with open('user_queries.pkl', 'wb') as file:
             pickle.dump(user_queries, file)
         print('dump user_queries ', user_queries)
+
+
         loaded_model = joblib.load('svm_model_new.pkl')
 
         tfidf_vectorizer = joblib.load('tfidf_vectorizer.pkl')
@@ -293,7 +304,7 @@ def generate_visualization():
         # user_queries = data.get('user_queries', [])
         with open('user_queries.pkl', 'rb') as file:
             loaded_array = pickle.load(file)
-        print('load user_queries ', user_queries)
+        # print('load user_queries ', user_queries)
         generate_pie_chart()
         generate_bar_graph(loaded_array)
         generate_doughnut_chart()
